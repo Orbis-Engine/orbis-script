@@ -1,0 +1,3 @@
+[submodule "packages/orbis_script/native/quickjs-ng"]
+	path = packages/orbis_script/native/quickjs-ng
+	url = https://github.com/quickjs-ng/quickjs.git
