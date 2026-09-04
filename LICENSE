@@ -27,3 +27,6 @@ Bundled third-party software:
   quickjs-ng — MIT License, Copyright (c) 2017-2024 Fabrice Bellard,
   Charlie Gordon and quickjs-ng contributors. Vendored as a pinned submodule
   under packages/orbis_script/native/quickjs-ng; see its own LICENSE.
+
+  Its code ships inside this one, so this notice is that licence's
+  requirement rather than an attribution of design.
