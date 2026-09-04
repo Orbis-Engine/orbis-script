@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: dart-lang/setup-dart@v1
+        with:
+          # Pinned: the formatter changes between releases, and tracking
+          # stable turns an unrelated SDK bump into a red build.
+          sdk: 3.13.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: ./tool/check.sh
