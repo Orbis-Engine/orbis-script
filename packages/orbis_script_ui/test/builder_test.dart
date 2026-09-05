@@ -71,6 +71,22 @@ void main() {
       expect(decoration.borderRadius, BorderRadius.circular(10));
     });
 
+    testWidgets('lining up on the baseline does not need to be told twice',
+        (tester) async {
+      // Flutter asserts if a baseline alignment arrives without a baseline,
+      // and a script asking for one should not be the thing that takes the
+      // frame down.
+      await show(tester, const UiNode(
+        type: 'row',
+        classes: 'items-baseline',
+        children: [
+          UiNode(type: 'text', text: 'Score'),
+          UiNode(type: 'text', classes: 'text-2xl', text: '1840'),
+        ],
+      ));
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('nothing in a description can throw a frame away',
         (tester) async {
       // Half-written trees are the normal case: script is reloaded on save,

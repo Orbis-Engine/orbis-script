@@ -225,16 +225,24 @@ class UiBuilder {
     final spaced = _spaced(children, style.gap ?? 0, direction == 'row');
     final scroll = style.scroll;
 
+    // Lining up on the baseline needs to be told which baseline, and Flutter
+    // asserts rather than guessing. A script asking for it should not be the
+    // thing that takes the frame down, so the answer is supplied here.
+    final baseline =
+        style.crossAxis == 'baseline' ? TextBaseline.alphabetic : null;
+
     final flex = direction == 'row'
         ? Row(
             mainAxisAlignment: _main(style.mainAxis),
             crossAxisAlignment: _cross(style.crossAxis),
+            textBaseline: baseline,
             mainAxisSize: scroll == null ? MainAxisSize.max : MainAxisSize.min,
             children: spaced,
           )
         : Column(
             mainAxisAlignment: _main(style.mainAxis),
             crossAxisAlignment: _cross(style.crossAxis),
+            textBaseline: baseline,
             mainAxisSize: scroll == null ? MainAxisSize.max : MainAxisSize.min,
             children: spaced,
           );
