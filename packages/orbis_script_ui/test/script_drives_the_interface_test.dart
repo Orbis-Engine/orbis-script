@@ -7,97 +7,40 @@ import 'package:orbis_script_ui/orbis_script_ui.dart';
 
 /// The whole chain, in one test.
 ///
-/// Script runs in the real engine, describes an interface, and Flutter builds
-/// real widgets from it. Every other test in this package starts from a
-/// description that Dart wrote, which proves the builder and nothing about
-/// where a description comes from — and where it comes from is the entire
-/// point of the thing.
+/// The library's own TypeScript, compiled, running in the real engine,
+/// describing an interface, coming out as real Flutter widgets — and a press
+/// going back the other way with the next render showing it.
 ///
-/// The script here is plain JavaScript rather than the TypeScript in `js/`,
-/// because compiling that needs a TypeScript compiler and there is not one on
-/// this machine. What it does is exactly what the compiled library does: build
-/// the same plain objects and hand them over as JSON on `__orbis_ui`.
+/// Every other test in this package starts from a description that Dart wrote,
+/// which proves the builder and nothing at all about where a description comes
+/// from. Where it comes from is the entire point of the thing.
+///
+/// Nothing here is a stand-in: [UiRuntime.source] is exactly what a game
+/// loads, generated from `js/ui.ts` by `tool/embed_runtime.dart`.
 void main() {
   group('script drives the interface', () {
     late ScriptHost host;
 
-    setUp(() => host = ScriptHost());
+    setUp(() {
+      host = ScriptHost();
+      host.eval(UiRuntime.source, fileName: 'orbis/ui.js');
+    });
+
     tearDown(() => host.dispose());
 
-    /// The part of `js/ui.ts` this test needs, as the JavaScript it compiles
-    /// to: elements, components, and the same handler-by-name arrangement.
-    const runtime = r'''
-      var handlers = {};
-      var counted = 0;
+    test('the runtime is the compiled library, not a copy of it', () {
+      // If this ever fails, the embedded runtime is stale: run
+      // `npm run build:ui && dart run tool/embed_runtime.dart`.
+      expect(UiRuntime.length, greaterThan(2000));
+      expect(host.eval('typeof globalThis.h'), 'function');
+      expect(host.eval('typeof globalThis.Fragment'), 'function');
+      expect(host.eval('typeof __orbis_ui.render'), 'function');
+    });
 
-      function element(type, props, children) {
-        props = props || {};
-        var node = { type: type };
-        var passed = {};
-        for (var name in props) {
-          if (name === 'class' || name === 'style' || name === 'key') continue;
-          var value = props[name];
-          if (typeof value === 'function') {
-            var handle = props.key ? props.key + ':' + name : 'h' + (++counted);
-            handlers[handle] = value;
-            passed[name] = handle;
-          } else {
-            passed[name] = value;
-          }
-        }
-        if (props.class) node.class = props.class;
-        if (props.style) node.style = props.style;
-        if (props.key) node.key = props.key;
-        if (Object.keys(passed).length) node.props = passed;
-
-        var flat = [];
-        (children || []).forEach(function (child) {
-          if (child === null || child === undefined || child === false) return;
-          flat.push(
-            typeof child === 'object' ? child : { type: 'text', text: String(child) }
-          );
-        });
-        // Some elements carry words rather than children, and in JSX the
-        // words are written where children go: <text>Hello</text>.
-        var worded = type === 'text' || type === 'button' || type === 'field';
-        if (worded && flat.length &&
-            flat.every(function (c) { return c.type === 'text' && !c.children; })) {
-          node.text = flat.map(function (c) { return c.text || ''; }).join('');
-          return node;
-        }
-
-        if (flat.length) node.children = flat;
-        return node;
-      }
-
-      // What JSX compiles to: a string tag is an element, a function tag is a
-      // component, and calling it is all that rendering one means.
-      function h(tag, props) {
-        var children = Array.prototype.slice.call(arguments, 2);
-        if (typeof tag === 'function') {
-          var given = Object.assign({}, props || {});
-          given.children = children;
-          return tag(given);
-        }
-        return element(tag, props, children);
-      }
-
-      var describe = function () { return { type: 'box' }; };
-      globalThis.__orbis_ui = {
-        mount: function (root) { describe = root; },
-        render: function () { return JSON.stringify(describe()); },
-        dispatch: function (name, payload) {
-          var handler = handlers[name];
-          if (handler) handler(payload);
-        },
-      };
-    ''';
-
-    test('an interface written as components comes back as widgets', () async {
+    test('an interface written as components comes back as widgets', () {
       // A component is a function from props to an element. No class, no
       // state, no lifecycle — those exist to drive a reconciler, and the
       // reconciler here is Flutter's.
-      host.eval(runtime);
       host.eval(r'''
         var count = 0;
 
@@ -105,7 +48,7 @@ void main() {
           return h('column', { class: 'p-4 gap-2 bg-slate-800 rounded-lg' },
             h('text', { class: 'text-lg font-bold text-slate-100' }, props.title),
             h('text', { class: 'text-slate-300' }, 'Pressed ' + count + ' times'),
-            h('button', { class: 'px-3 py-2 bg-ember-500 rounded', key: 'more',
+            h('button', { class: 'px-3 py-2 rounded', key: 'more',
                           onPressed: function () { count++; } }, 'One more')
           );
         }
@@ -120,6 +63,9 @@ void main() {
       expect(node.type, 'column');
       expect(node.classes, contains('bg-slate-800'));
       expect(node.children, hasLength(3));
+
+      // Words written where children go, folded onto the element that carries
+      // them — which is what `<text>Hello</text>` has to mean.
       expect(node.children.first.text, 'From TypeScript');
       expect(node.children[1].text, 'Pressed 0 times');
 
@@ -127,8 +73,18 @@ void main() {
       expect(node.children[2].handlerFor('onPressed'), 'more:onPressed');
     });
 
-    test('what the script says is styled by the same class names', () async {
-      host.eval(runtime);
+    test('a fragment stands in for several where one is expected', () {
+      host.eval(r'''
+        __orbis_ui.mount(function () {
+          return h(Fragment, null, h('text', {}, 'One'), h('text', {}, 'Two'));
+        });
+      ''');
+
+      final node = UiNode.decode(host.eval('__orbis_ui.render()'));
+      expect(node.children.map((child) => child.text), ['One', 'Two']);
+    });
+
+    test('what the script says is styled by the same class names', () {
       host.eval(r'''
         __orbis_ui.mount(function () {
           return h('row', { class: 'p-4 gap-3 items-center' },
@@ -143,13 +99,30 @@ void main() {
       expect(style.paddingLeft, 16);
       expect(style.gap, 12);
       expect(style.crossAxis, 'center');
-      // Nothing in it that the vocabulary does not know.
+      // Nothing in it the vocabulary does not know.
       expect(builder.unknownIn(node), isEmpty);
     });
 
+    test('CSS written inline lands on the same style as the classes', () {
+      host.eval(r'''
+        __orbis_ui.mount(function () {
+          return h('box', {
+            class: 'p-2',
+            style: 'background: #223344; border-radius: 6px',
+          });
+        });
+      ''');
+
+      final node = UiNode.decode(host.eval('__orbis_ui.render()'));
+      final style = UiBuilder().styleOf(node);
+
+      expect(style.paddingTop, 8);
+      expect(style.radius, 6);
+      expect(style.background, const Color(0xFF223344));
+    });
+
     test('pressing something reaches the script, and the next render shows it',
-        () async {
-      host.eval(runtime);
+        () {
       host.eval(r'''
         var count = 0;
         __orbis_ui.mount(function () {
@@ -168,8 +141,16 @@ void main() {
       expect(second.text, 'Pressed 1');
     });
 
+    test('a script that throws surfaces as an error rather than a blank frame',
+        () {
+      expect(
+        () => host.eval('__orbis_ui.mount(function () { throw new Error("no"); });'
+            '__orbis_ui.render()'),
+        throwsA(isA<ScriptError>()),
+      );
+    });
+
     testWidgets('and it lays out as real Flutter widgets', (tester) async {
-      host.eval(runtime);
       host.eval(r'''
         __orbis_ui.mount(function () {
           return h('column', { class: 'p-4 gap-2' },

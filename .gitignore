@@ -5,3 +5,5 @@ build/
 pubspec.lock
 node_modules/
 dist/
+packages/*/build/js/
+packages/*/test/js/

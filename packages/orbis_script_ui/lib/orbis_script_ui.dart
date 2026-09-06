@@ -17,7 +17,9 @@ library;
 
 export 'src/builder.dart' show UiBuilder, UiEvent;
 export 'src/css.dart' show UiCss;
+export 'src/module.dart' show ScriptModule;
 export 'src/node.dart' show UiNode;
+export 'src/runtime.g.dart' show UiRuntime;
 export 'src/runner.dart' show ScriptedUiView, UiScriptRunner;
 export 'src/style.dart' show UiStyle;
 export 'src/surface.dart' show ScriptedSurface;

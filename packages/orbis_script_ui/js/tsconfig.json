@@ -1,8 +1,11 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    // CommonJS rather than ES modules: the engine evaluates this as a plain
+    // script, and there is nothing on the other side to import from. What
+    // little `exports` scaffolding this emits is answered by the wrapper the
+    // embedding tool puts round it.
+    "module": "commonjs",
     "strict": true,
     "lib": ["ES2020"],
     "noEmit": false,
