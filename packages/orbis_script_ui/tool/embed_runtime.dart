@@ -47,7 +47,7 @@ class UiRuntime {
 
   /// What the library answers `require` for. Anything else has to be bundled
   /// into the script before it is run.
-  static const List<String> modules = ['ui', 'jsx-runtime'];
+  static const List<String> modules = ['orbis', 'orbis/jsx-runtime'];
 
   static const String source = ${_dartString(wrapped)};
 }
@@ -100,6 +100,16 @@ String _wrap(Map<String, File> modules) {
   if (typeof globalThis.require !== 'function') globalThis.require = ask;
 
 $defined
+
+  // The public name of the library, which is what a game writes:
+  // `import { mount } from "orbis"`. The file it lives in is called ui, and
+  // that is the library's business rather than anybody else's.
+  modules['orbis'] = modules['ui'];
+
+  // So a host can register a game's own file under a name and then reach what
+  // it exported. A script that keeps its state in a module is the ordinary
+  // case, and the host has to be able to write into it.
+  globalThis.__orbis_modules = modules;
 })();''';
 }
 

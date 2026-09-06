@@ -11,6 +11,13 @@
     "noEmit": false,
     "outDir": "../build/js",
 
+    // The types a game compiles against, kept apart from the JavaScript it
+    // runs. Pointing a consumer at the sources instead drags them into its
+    // own build — its output ends up nested under a shared root, and it
+    // recompiles a library it already has.
+    "declaration": true,
+    "declarationDir": "../types",
+
     // JSX compiles to this library's own `h`, not to React's
     // `createElement` — there is no React here and nothing to install. A tag
     // that is a string is an element the engine draws; one that is a function
