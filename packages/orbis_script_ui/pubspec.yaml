@@ -13,6 +13,13 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # The interface model and the widgets it builds. Engine rather than
+  # scripting: a canvas laid out by hand in the editor and a tree described in
+  # TypeScript are the same document, and two copies of that model would be two
+  # things to keep in step forever. This package is the TypeScript way in.
+  orbis_ui:
+    path: ../../../orbis/packages/orbis_ui
+
 dev_dependencies:
   # For the one test that runs the whole chain: script in the real engine,
   # through the description, out as widgets. Only a test needs it — this

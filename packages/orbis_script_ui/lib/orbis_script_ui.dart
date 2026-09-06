@@ -1,3 +1,13 @@
+/// TypeScript's way into an interface.
+///
+/// The model and the widgets are `orbis_ui`, which is engine: a canvas laid
+/// out by hand in the editor and a tree described in TypeScript are the same
+/// document, and this package is one of the two ways to author it. What is
+/// here is the part that is actually about script — running it, watching it,
+/// and putting what it returned on screen.
+///
+/// The original description, which is still what the whole layer is for:
+///
 /// An interface described in TypeScript and built in Flutter.
 ///
 /// One widget vocabulary rather than two. A script describes a tree — boxes,
@@ -15,12 +25,7 @@
 /// aligned forever.
 library;
 
-export 'src/builder.dart' show UiBuilder, UiEvent;
-export 'src/css.dart' show UiCss;
-export 'src/node.dart' show UiNode;
+export 'package:orbis_ui/orbis_ui.dart';
+
 export 'src/runtime.g.dart' show UiRuntime;
 export 'src/runner.dart' show ScriptedUiView, UiScriptRunner;
-export 'src/style.dart' show UiStyle;
-export 'src/surface.dart' show ScriptedSurface;
-export 'src/theme.dart' show UiTheme;
-export 'src/utilities.dart' show UiUtilities, parseColour;

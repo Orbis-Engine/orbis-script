@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:orbis_ui/orbis_ui.dart';
 
 
-import 'node.dart';
-import 'surface.dart';
-import 'theme.dart';
 
 /// Whatever can run a line of script and hand back what it returned.
 ///
@@ -112,7 +110,7 @@ class _ScriptedUiViewState extends State<ScriptedUiView> {
   Widget build(BuildContext context) {
     final failure = _failure;
     if (failure != null) {
-      return ScriptedSurface(
+      return UiSurface(
         theme: widget.theme,
         fontFamily: widget.fontFamily,
         description: UiNode(
@@ -129,7 +127,7 @@ class _ScriptedUiViewState extends State<ScriptedUiView> {
       );
     }
 
-    return ScriptedSurface(
+    return UiSurface(
       description: _description,
       theme: widget.theme,
       fontFamily: widget.fontFamily,
