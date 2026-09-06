@@ -58,6 +58,9 @@ function nameFor(handler: Handler, key: string | undefined, event: string): stri
   return name;
 }
 
+/// The elements whose content is words rather than other elements.
+const WORDED = new Set(["text", "button", "field"]);
+
 /** Builds one element. */
 export function element(type: string, props: Props = {}, ...children: Child[]): Node {
   const { class: classes, style, key, ...rest } = props;
@@ -83,8 +86,70 @@ export function element(type: string, props: Props = {}, ...children: Child[]): 
   if (style) node.style = style;
   if (key) node.key = key;
   if (Object.keys(passed).length > 0) node.props = passed;
+
+  // Some elements carry words rather than children, and in JSX the words are
+  // written where children go: `<text>Hello</text>`. Folded here rather than
+  // asked of whoever writes it, because the alternative is a text element
+  // containing a text element containing the words, which draws nothing.
+  if (WORDED.has(type) && flattened.length > 0 &&
+      flattened.every((child) => child.type === "text" && child.children === undefined)) {
+    node.text = flattened.map((child) => child.text ?? "").join("");
+    return node;
+  }
+
   if (flattened.length > 0) node.children = flattened;
   return node;
+}
+
+/**
+ * What a component is here: a function from props to an element.
+ *
+ * Deliberately not a class, and deliberately without state, effects or a
+ * lifecycle. Those exist in React to drive a reconciler, and there is no
+ * reconciler on this side — the description crosses to Dart and Flutter does
+ * the reconciling, which it is already extremely good at. Adding a second one
+ * here would mean two trees disagreeing about what is on screen.
+ *
+ * State lives wherever the script keeps it, and the interface is described
+ * again after every event. That is the same thing `build` does on every
+ * setState, and it costs about as much.
+ */
+export type Component<P = Props> = (props: P & { children?: Child[] }) => Node;
+
+/**
+ * The function JSX compiles to.
+ *
+ * `<row class="p-4">{...}</row>` becomes `h("row", { class: "p-4" }, ...)`,
+ * and `<Panel title="x" />` becomes `h(Panel, { title: "x" })`. Set
+ * `"jsxFactory": "h"` and `"jsxFragmentFactory": "Fragment"` in tsconfig, or
+ * `"jsx": "react"` with `"jsxFactory": "h"`.
+ *
+ * A tag that is a string is an element the engine knows how to draw; a tag
+ * that is a function is a component, and calling it is all that "rendering"
+ * one means.
+ */
+export function h(
+  tag: string | Component<any>,
+  props: Props | null,
+  ...children: Child[]
+): Node {
+  const given = props ?? {};
+  if (typeof tag === "function") {
+    return tag({ ...given, children });
+  }
+  return element(tag, given, ...children);
+}
+
+/**
+ * `<>...</>` — several elements where one is expected.
+ *
+ * A column rather than a special kind of node, because the description has no
+ * concept of a group and inventing one would mean the Dart side needing to
+ * know about it. A fragment in a row is the one case where that shows; use a
+ * row there instead.
+ */
+export function Fragment(props: { children?: Child[] }): Node {
+  return element("column", {}, ...(props.children ?? []));
 }
 
 const of = (type: string) =>
@@ -148,3 +213,8 @@ export function dispatch(name: string, payload?: string): void {
   dispatch,
   mount,
 };
+
+// So that a bundle compiled with `"jsx": "react"` finds its factory without
+// every file importing it.
+(globalThis as Record<string, unknown>).h = h;
+(globalThis as Record<string, unknown>).Fragment = Fragment;

@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "lib": ["ES2020"],
+    "noEmit": false,
+    "outDir": "../build/js",
+
+    // JSX compiles to this library's own `h`, not to React's
+    // `createElement` — there is no React here and nothing to install. A tag
+    // that is a string is an element the engine draws; one that is a function
+    // is a component, and calling it is all that rendering one means.
+    "jsx": "react",
+    "jsxFactory": "h",
+    "jsxFragmentFactory": "Fragment"
+  },
+  "include": ["*.ts", "*.tsx"]
+}

@@ -14,6 +14,12 @@ dependencies:
     sdk: flutter
 
 dev_dependencies:
+  # For the one test that runs the whole chain: script in the real engine,
+  # through the description, out as widgets. Only a test needs it — this
+  # package builds widgets from a description and does not care where the
+  # description came from.
+  orbis_script:
+    path: ../orbis_script
   flutter_lints: ^5.0.0
   flutter_test:
     sdk: flutter
