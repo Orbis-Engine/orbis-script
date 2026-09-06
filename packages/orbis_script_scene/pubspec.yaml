@@ -1,0 +1,22 @@
+name: orbis_script_scene
+description: >-
+  Game objects described from TypeScript. Script says what is in the world and
+  where; turning that into a particular renderer's description is the caller's
+  job.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.10.0
+
+dependencies:
+  vector_math: ^2.1.4
+
+dev_dependencies:
+  # For the tests that run the whole chain: script in the real engine, out as
+  # things in a world. Only a test needs it — this package decodes what a
+  # script sent and does not care which engine sent it.
+  orbis_script:
+    path: ../orbis_script
+  lints: ^5.0.0
+  test: ^1.25.0

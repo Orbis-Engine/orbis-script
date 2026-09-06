@@ -6,3 +6,4 @@
 library;
 
 export 'src/host.dart' show ScriptError, ScriptHost;
+export 'src/module.dart' show ScriptModule;

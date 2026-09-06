@@ -21,8 +21,21 @@ export interface Node {
   children?: Node[];
 }
 
-/** What can be a child: an element, some words, or nothing. */
-export type Child = Node | string | number | null | undefined | false;
+/**
+ * What can be a child: an element, some words, nothing, or more of them.
+ *
+ * Arrays are in here because `{items.map(...)}` is how anybody writes a list,
+ * and it produces one. The runtime has always flattened them; the type simply
+ * did not say so, which made the ordinary way of writing a list an error.
+ */
+export type Child =
+  | Node
+  | string
+  | number
+  | null
+  | undefined
+  | false
+  | Child[];
 
 /** Something that happens when an element is used. */
 export type Handler = (payload?: string) => void;
@@ -73,13 +86,23 @@ export function element(type: string, props: Props = {}, ...children: Child[]): 
         : value;
   }
 
+  // Flattened by hand rather than by `flat`, because a child may be an array
+  // of arrays — `{rows.map(row => row.map(...))}` is an ordinary thing to
+  // write — and the depth is not known in advance.
   const flattened: Node[] = [];
-  for (const child of children.flat(8) as Child[]) {
-    if (child === null || child === undefined || child === false) continue;
+
+  const take = (child: Child): void => {
+    if (child === null || child === undefined || child === false) return;
+    if (Array.isArray(child)) {
+      for (const each of child) take(each);
+      return;
+    }
     flattened.push(
       typeof child === "object" ? child : { type: "text", text: String(child) },
     );
-  }
+  };
+
+  for (const child of children) take(child);
 
   const node: Node = { type };
   if (classes) node.class = classes;

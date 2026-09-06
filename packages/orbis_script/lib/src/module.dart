@@ -32,7 +32,12 @@ class ScriptModule {
         '})()';
 
     if (name == null) return '$body;';
-    return 'globalThis.__orbis_modules[${_quoted(name)}] = $body;';
+
+    // The registry may not exist yet: a script can be run before any of the
+    // engine's own libraries are, and refusing to keep its exports because
+    // nothing else has been loaded would be a strange rule.
+    return 'globalThis.__orbis_modules = globalThis.__orbis_modules || {};\n'
+        'globalThis.__orbis_modules[${_quoted(name)}] = $body;';
   }
 
   /// A JavaScript string literal. Names come from callers, and a caller with a

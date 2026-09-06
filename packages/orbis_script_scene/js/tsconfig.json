@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "commonjs",
+    "strict": true,
+    "lib": ["ES2020"],
+    "outDir": "../build/js",
+
+    // The types a game compiles against, kept apart from the JavaScript it
+    // runs, so a consumer does not drag these sources into its own build.
+    "declaration": true,
+    "declarationDir": "../types"
+  },
+  "include": ["*.ts"]
+}

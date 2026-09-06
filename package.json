@@ -3,7 +3,9 @@
   "private": true,
   "description": "The TypeScript toolchain for the script runtime's own libraries. Not published, and not needed to use the Dart packages — only to change the TypeScript in them.",
   "scripts": {
+    "build": "npm run build:ui && npm run build:scene",
     "build:ui": "tsc -p packages/orbis_script_ui/js/tsconfig.json && cd packages/orbis_script_ui && dart run tool/embed_runtime.dart",
+    "build:scene": "tsc -p packages/orbis_script_scene/js/tsconfig.json && cd packages/orbis_script_scene && dart run tool/embed_runtime.dart",
     "build:example": "tsc -p packages/orbis_script_ui/example/tsconfig.json",
     "check": "tsc -p packages/orbis_script_ui/js/tsconfig.json --noEmit"
   },

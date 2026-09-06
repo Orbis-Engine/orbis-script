@@ -8,8 +8,14 @@ export interface Node {
     props?: Record<string, unknown>;
     children?: Node[];
 }
-/** What can be a child: an element, some words, or nothing. */
-export type Child = Node | string | number | null | undefined | false;
+/**
+ * What can be a child: an element, some words, nothing, or more of them.
+ *
+ * Arrays are in here because `{items.map(...)}` is how anybody writes a list,
+ * and it produces one. The runtime has always flattened them; the type simply
+ * did not say so, which made the ordinary way of writing a list an error.
+ */
+export type Child = Node | string | number | null | undefined | false | Child[];
 /** Something that happens when an element is used. */
 export type Handler = (payload?: string) => void;
 export interface Props {
