@@ -73,4 +73,5 @@ script can actually call.
 
 ## Licence
 
-MIT. Bundles quickjs-ng, also MIT.
+MIT, © 2026 Chris Beckett. Bundles quickjs-ng, also MIT and under its own copyright —
+see [LICENSE](LICENSE).
